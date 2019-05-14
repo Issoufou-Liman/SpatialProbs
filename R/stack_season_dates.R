@@ -1,0 +1,58 @@
+#' Estimate and stack the beginning and end of growing seasons.
+#'
+#' @author Issoufou Liman
+#' @param r_stack A raster stack
+#' @param ts_freq The frequence of time series to be passed to phases (see ?phases).
+#' @return A raster stack of biginning and end of the season for each pixel.
+#' @examples
+#' ## making some data
+#' nam<- seq.Date(from = as.Date('2016-01-01'), to = as.Date ('2018-12-31'), by = 16)
+#' dx11 <- c(1.30, 1.15,  1.50,  2.00,  2.01,  3.00, 3.20,  4.76,  3.50,  3.00,  2.40,  2.00,  1.50)
+#' dx12 <-c(1.29, 1.1, 1.49, 1.99, 2, 3.1, 4.5, 4, 2.8, 2.5, 2.3, 1.6, 1.59)
+#' names(dx11) <- nam[1:length(dx11)]
+#' names(dx12) <- nam[1:length(dx12)]
+#' dx1 <- c(dx11, dx12)
+#' names(dx1) <- nam[1:length(dx1)]
+#' dx2 <- dx1
+#' dx2[21:length(dx2)] <- NA
+#' dy11 <- c(1.40, 1.00, 1.50, 2.00, 5.00, 3.00, 1.00, 0.76, 2.00, 1.00, 3.50, 3.00, 1.50)
+#' dy12 <- c(1.30, 1.10, 1.40, 2.01, 5.50, 2.80, 1.01, 1, 2.03, 1.09, 3.10, 3.00, 1.50)
+#' names(dy11) <- nam[1:length(dy11)]
+#' names(dy12) <- nam[1:length(dy12)]
+#' dy1 <- c(dy11, dy12)
+#' names(dy1) <- nam[1:length(dy1)]
+#' dy2 <- dy1
+#' dy2[23:length(dy2)] <- NA
+#' df <- rbind(dx1, dx2, dy1, dy2)
+#'
+#' ## creating a raster stack and assigning the data above as its pixels values
+#' s <- raster::raster(nrows=2, ncols=2, xmn=0, xmx=10)
+#' rlist <- vector('list', ncol(df))
+#' for(i in 1:ncol(df)){
+#' rlist [[i]] <- raster::setValues(s, df[,i])
+#' }
+#' s <- do.call('stack', rlist)
+#' names(s) <- colnames(df)
+#'
+#' ## calling the function on the created raster stack.
+#' x <- stack_season_dates(s, ts_freq = 12)
+#'
+#' ## check it up!
+#' values(x)
+#' @export
+stack_season_dates <- function(r_stack, ts_freq = 23) {
+    out <- raster::raster(r_stack)  # saving the raster skeleton.
+    val <- raster::values(r_stack)  # getting the pixel values
+    # removing the letter (e.g. X in X2016.10.01) from the column names of the extracted pixel values
+    colnames(val) <- as.character(as.Date(substring(colnames(val), 2), format = "%Y.%m.%d"))
+    # getting the phases and calculating the begin and end of each season.
+    seas <- lapply(X = apply(X = val, MARGIN = 1, FUN = function(i) {
+        lapply(X = get_phases(phases(i, ts_freq = ts_freq)), FUN = date_season)
+    }), FUN = unlist, recursive = F)
+    seas <- lapply(X = seas, FUN = function(i) data.frame(rbind(i)))
+    seas <- do.call(plyr::rbind.fill, seas)
+    seas <- as.matrix(seas)
+    out <- stack(mget(rep("out", ncol(seas))))
+    out <- setValues(out, seas)
+    return(out)
+}
