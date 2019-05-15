@@ -1,10 +1,13 @@
 #' Estimate and stack the beginning and end of growing seasons.
 #'
 #' @author Issoufou Liman
-#' @param r_stack A raster stack
+#' @param x A Raster* object (see \code{\link[raster]{brick}}, \code{\link[raster]{stack}})
 #' @param ts_freq The frequence of time series to be passed to phases (see ?phases).
-#' @return A raster stack of biginning and end of the season for each pixel.
+#' @return A rasterStack object (see \code{\link[raster]{Raster-class}}) of biginning
+#' and end of the season for each pixel.
+#' @seealso \code{\link[SpatialProbs]{phases}}, \code{\link[SpatialProbs]{seasons}}, \code{\link[SpatialProbs]{date_season}}
 #' @examples
+#' library(raster)
 #' ## making some data
 #' nam<- seq.Date(from = as.Date('2016-01-01'), to = as.Date ('2018-12-31'), by = 16)
 #' dx11 <- c(1.30, 1.15,  1.50,  2.00,  2.01,  3.00, 3.20,  4.76,  3.50,  3.00,  2.40,  2.00,  1.50)
@@ -39,10 +42,12 @@
 #'
 #' ## check it up!
 #' values(x)
+#' @importFrom raster stack
+#' @importFrom raster setValues
 #' @export
-stack_season_dates <- function(r_stack, ts_freq = 23) {
-    out <- raster::raster(r_stack)  # saving the raster skeleton.
-    val <- raster::values(r_stack)  # getting the pixel values
+stack_season_dates <- function(x, ts_freq = 23) {
+    out <- raster::raster(x)  # saving the raster skeleton.
+    val <- raster::values(x)  # getting the pixel values
     # removing the letter (e.g. X in X2016.10.01) from the column names of the extracted pixel values
     colnames(val) <- as.character(as.Date(substring(colnames(val), 2), format = "%Y.%m.%d"))
     # getting the phases and calculating the begin and end of each season.

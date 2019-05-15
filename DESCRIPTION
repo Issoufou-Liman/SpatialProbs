@@ -1,11 +1,32 @@
 Package: SpatialProbs
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Solving Spatial Problems under Uncertainity
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(
+    person("Issoufou", "Liman", , c("issoufoul@gmail.com", "L.issoufou@cgiar.org"), c("aut", "cre")),
+    person("Cory", "Whitney", , role = "aut"),
+    person("James", "Kungu", , role = "aut"),
+    person("Eike", "Luedeling", , role = "aut")
+    )
+    person("Issoufou", "Liman", , email = c("issoufoul@gmail.com", "L.issoufou@cgiar.org"),
+    role = c("aut", "cre"))
+Depends:
+    R (>= 3.4.0),
+Imports:
+    raster,
+    chillR,
+    plyr
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+Description: SpatialProbs stands for `S`olving `Spatial` `Prob`lems with `Prob`abilities. The package provides
+    useful functions for derving important spatial explicit metrics. Most of the function focus on deriving these metrics
+    as Bayesian networks nodes but can also be used for other analysis, particularly those on multi-critera analysis.
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1
+Roxygen: list(markdown = TRUE)
+biocViews:

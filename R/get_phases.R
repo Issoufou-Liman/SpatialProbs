@@ -3,11 +3,12 @@
 #' get_phases method for getting the phasal data according to the specified type arguments
 #' (peaks or v_points). By default, the phases are derived according to v_points. see ?phases,
 #' the constructor function for the class phases.
-#' @author Issoufou Liman
+
 #' @param x Either a numeric vector or an object of class phases.
-#' @param ... further arguments passed to the class constructor function phases (). see ?phase
+#' @param ... further arguments passed to the class constructor function phases.
+#' Ignored when `x` is of class `phases`
+#' @seealso phases
 #' @return A list containing the phasal data.
-#' @details see also ?phase
 #' @examples
 #' nam<- seq.Date(from = as.Date('2016-01-01'), to = as.Date ('2018-12-31'), by = 16)
 #' dy11 <- c(1.40, 1.00, 1.50, 2.00, 5.00, 3.00, 1.00, 0.76, 2.00, 1.00, 3.50, 3.00, 1.50)
@@ -24,4 +25,17 @@
 #' @export
 get_phases <- function(x, ...) {
     UseMethod("get_phases")
+}
+
+#' @rdname get_phases
+#' @export
+get_phases.default <- function(x, ...) {
+  y <- phases(x, ...)
+  y$phases
+}
+
+#' @rdname get_phases
+#' @export
+get_phases.phases <- function(x, ...) {
+  x$phases
 }

@@ -1,37 +1,36 @@
-#' Check valleys in a curve: useful for separing the long and short rainy season
+#' Check seasonal change point in a vector of data
 #'
 #' Takes a numeric vector, locates and returns the indices of a maximum number of n_v_shape points
 #' given a specified number of relative points (that are higher at both side of a v shape point).
 #' @author Issoufou Liman
-#' @param vektor A numeric vector in which to check the indices of the v-like shape points.
-#' These are typically pixels values extracted from a stack of NDVI time series.
+#' @param vektor A numeric vector. in which to check the indices of the fall (v-like) shape points.
 #' @param n_v_shape Integer. The number of points at which vektor takes a v-like shape. Default to 1.
 #' @param steps Integer. The minimum number of points at either sides of each v-like point
 #' to be considered higher for it to qualify as v-like point. Default to 3
-#' @param force_steps Logical. should the number of points on both sides be equal to steps?
+#' @param force_steps Logical. Should steps argument be enforced on both side each v_shape point?
 #' This is related to v-like points at the beiggining and/or end. Default to TRUE
-#' @return A vector of lenght n_v_shape (at most) containing the indices of v-like points
+#' @return A vector of `lenght (n_v_shape)`, at most, containing the indices of v-like points
 #' @details The number of points at both side of a v-like point will determine the number of
 #' v-like points to be return when there are many candidates since the higher
 #' the steps argument, the less the number of final points to be returned. while
-#' check_v_shape () will increase step-wise the number of steps to get closer to the number
-#' of specified v-like points (n_v_shape), it cannot handle cases where there are 2 or
-#' more equal points located at a v shape. Called on - vektor, check_v_shape () will return
+#' `check_v_shape ()` will increase step-wise the number of steps to get closer to the number
+#' of specified v-like points (`n_v_shape`), it cannot handle cases where there are 2 or
+#' more equal points located at a v shape. Called on `- vektor`, `check_v_shape ()` will return
 #' the peaks instead of v-like points.
 #' @examples
 #' dx11 <- c(1.30, 1.15,  1.50,  2.00,  2.01,  3.00, 3.20,  4.76,  3.50,  3.00,  2.40,  2.00,  1.50)
 #' dx12 <-c(1.29, 1.1, 1.49, 1.99, 2, 3.1, 4.5, 4, 2.8, 2.5, 2.3, 1.6, 1.59)
 #' dx1 <- c(dx11, dx12)
 #' ## checking existing v-like shape
-#' v_pts <- check_v_shapes (dx1, n_v_shape = 1, steps = 3)
+#' v_pts <- get_falls (dx1, n_v_shape = 1, steps = 3)
 #' ## ploting the v_pts in red
 #' plot(dx1, col=ifelse(dx1==dx1[v_pts], 'red', 'black'),
 #' pch=ifelse(dx1==dx1[v_pts], 19, 1), type = 'o')
 #' ## checking non existing v-like shape
-#' check_v_shapes (dx11, n_v_shape = 1, steps = 3)
-#' check_v_shapes (dx12, n_v_shape = 1, steps = 3)
+#' get_falls (dx11, n_v_shape = 1, steps = 3)
+#' get_falls (dx12, n_v_shape = 1, steps = 3)
 #' @export
-check_v_shapes <- function(vektor, n_v_shape = 1, steps = 3, force_steps = TRUE) {
+get_falls <- function(vektor, n_v_shape = 1, steps = 3, force_steps = TRUE) {
     # points where a curve has v shape are point where the derivate of the signs of the derivates of the points
     # representing the curve is equal to 2: i.e. diff(sign(diff(vektor)))==2 suppose the vector starts a -Infinity to
     # handle cases of v_shape a the beggining
