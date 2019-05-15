@@ -4,12 +4,12 @@
 \alias{get_falls}
 \title{Check seasonal change point in a vector of data}
 \usage{
-get_falls(vektor, n_v_shape = 1, steps = 3, force_steps = TRUE)
+get_falls(x, n_v_shape = 1, steps = 3, force_steps = TRUE)
 }
 \arguments{
-\item{vektor}{A numeric vector. in which to check the indices of the fall (v-like) shape points.}
+\item{x}{A numeric vector. in which to check the indices of the fall (v-like) shape points.}
 
-\item{n_v_shape}{Integer. The number of points at which vektor takes a v-like shape. Default to 1.}
+\item{n_v_shape}{Integer. The number of points at which x takes a v-like shape. Default to 1.}
 
 \item{steps}{Integer. The minimum number of points at either sides of each v-like point
 to be considered higher for it to qualify as v-like point. Default to 3}
@@ -28,9 +28,9 @@ given a specified number of relative points (that are higher at both side of a v
 The number of points at both side of a v-like point will determine the number of
 v-like points to be return when there are many candidates since the higher
 the steps argument, the less the number of final points to be returned. while
-\code{check_v_shape ()} will increase step-wise the number of steps to get closer to the number
+\code{get_falls ()} will increase step-wise the number of steps to get closer to the number
 of specified v-like points (\code{n_v_shape}), it cannot handle cases where there are 2 or
-more equal points located at a v shape. Called on \code{- vektor}, \code{check_v_shape ()} will return
+more equal points located at a v shape. Called on \code{- x}, \code{get_falls ()} will return
 the peaks instead of v-like points.
 }
 \examples{

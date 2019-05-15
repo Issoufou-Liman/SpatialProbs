@@ -84,9 +84,9 @@ phases <- function(x, type = c("v_points", "peaks"), n_criticals = 1, steps = 2,
     if (type == "v_points") {
         # if we want to have the data broken down as 1:v_points1, v_point_1:end in other words if we want separe the
         # seasons.
-        pts <- get_falls(vektor = x, n_v_shape = n_criticals, steps = steps)  # this will return the index of the v_point.
+        pts <- get_falls(x = x, n_v_shape = n_criticals, steps = steps)  # this will return the index of the v_point.
     } else if (type == "peaks") {
-        pts <- get_falls(vektor = -x, n_v_shape = n_criticals, steps = steps)
+        pts <- get_falls(x = -x, n_v_shape = n_criticals, steps = steps)
     }
     # lastly use the range of data indexes to break it down into the corresponding pieces: for each range of index,
     # subset the data.

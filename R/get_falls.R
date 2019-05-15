@@ -3,8 +3,8 @@
 #' Takes a numeric vector, locates and returns the indices of a maximum number of n_v_shape points
 #' given a specified number of relative points (that are higher at both side of a v shape point).
 #' @author Issoufou Liman
-#' @param vektor A numeric vector. in which to check the indices of the fall (v-like) shape points.
-#' @param n_v_shape Integer. The number of points at which vektor takes a v-like shape. Default to 1.
+#' @param x A numeric vector. in which to check the indices of the fall (v-like) shape points.
+#' @param n_v_shape Integer. The number of points at which x takes a v-like shape. Default to 1.
 #' @param steps Integer. The minimum number of points at either sides of each v-like point
 #' to be considered higher for it to qualify as v-like point. Default to 3
 #' @param force_steps Logical. Should steps argument be enforced on both side each v_shape point?
@@ -13,9 +13,9 @@
 #' @details The number of points at both side of a v-like point will determine the number of
 #' v-like points to be return when there are many candidates since the higher
 #' the steps argument, the less the number of final points to be returned. while
-#' `check_v_shape ()` will increase step-wise the number of steps to get closer to the number
+#' `get_falls ()` will increase step-wise the number of steps to get closer to the number
 #' of specified v-like points (`n_v_shape`), it cannot handle cases where there are 2 or
-#' more equal points located at a v shape. Called on `- vektor`, `check_v_shape ()` will return
+#' more equal points located at a v shape. Called on `- x`, `get_falls ()` will return
 #' the peaks instead of v-like points.
 #' @examples
 #' dx11 <- c(1.30, 1.15,  1.50,  2.00,  2.01,  3.00, 3.20,  4.76,  3.50,  3.00,  2.40,  2.00,  1.50)
@@ -30,17 +30,17 @@
 #' get_falls (dx11, n_v_shape = 1, steps = 3)
 #' get_falls (dx12, n_v_shape = 1, steps = 3)
 #' @export
-get_falls <- function(vektor, n_v_shape = 1, steps = 3, force_steps = TRUE) {
+get_falls <- function(x, n_v_shape = 1, steps = 3, force_steps = TRUE) {
     # points where a curve has v shape are point where the derivate of the signs of the derivates of the points
-    # representing the curve is equal to 2: i.e. diff(sign(diff(vektor)))==2 suppose the vector starts a -Infinity to
+    # representing the curve is equal to 2: i.e. diff(sign(diff(x)))==2 suppose the vector starts a -Infinity to
     # handle cases of v_shape a the beggining
-    shape <- diff(sign(diff(vektor)))
+    shape <- diff(sign(diff(x)))
     # applying the concept above to every points and returning the the index of those points that qualify for v_shape
     # areas Note that the number of v_shapes depends on the steps (number of points aside the targeted point)
     # considered.  Therefore we start with a small number of steps and increase it if needed depending on the number
     # of desired peacks.  This is achieved using the deep assignment arrow <<- as below inside the increase_steps ()
     # function.  This helper function increase the steps (number of points to be higher than the targeted point at
-    # both side) each time repeat () is called.  This way, the (main) check_v_shape () function will returned its
+    # both side) each time repeat () is called.  This way, the (main) get_falls () function will returned its
     # value depending on the number of v_shape (n_v_shape argument) specified.  <<-, instead of creating a variable
     # in the current environment, as as does <-, modifies a variable existing in the upper level (parent
     # environments).  (see ?'<<-')
@@ -51,25 +51,25 @@ get_falls <- function(vektor, n_v_shape = 1, steps = 3, force_steps = TRUE) {
     }
     repeat {
         steps <- increase_steps()
-        v_shape <- sapply(X = which(shape == 2), FUN = function(x) {
+        v_shape <- sapply(X = which(shape == 2), FUN = function(i) {
             # apply this function to every points where diff(sign(diff()))==2 steps is the minimum number of points to
             # consider at both side of the targeted point.  the +1 account for the differences in index due the derivative as
             # diff function uses x[(1+lag):n] - x[1:(n-lag)].  see ?diff
-            before <- x - steps + 1
+            before <- i - steps + 1
             # making sure to not get out of bound index
             before <- ifelse(before > 0, before, 1)
-            after <- x + steps + 1
-            after <- ifelse(after < length(vektor), after, length(vektor))
+            after <- i + steps + 1
+            after <- ifelse(after < length(x), after, length(x))
             # getting steps points before the targeted point and steps points after the targeted point
-            test <- vektor[c(before:x, (x + 2):after)]
+            test <- x[c(before:i, (i + 2):after)]
             # getting the targeted point
-            target <- vektor[x + 1]
+            target <- x[i + 1]
             # we know the point is some how located at a v shape area but to which extent? so, testing the extent to which it
             # qualifies (given steps and n_v_shape arguments).  force to have the required number of steps on each side if
             # all points are higher than the targeted point,
             if (force_steps == TRUE) {
                 if (all(test > target) && length(test) >= 2 * steps) {
-                  return(x + 1)  # then return the target.
+                  return(i + 1)  # then return the target.
                 } else {
                   # otherwise, return null
                   return(numeric(0))
@@ -77,7 +77,7 @@ get_falls <- function(vektor, n_v_shape = 1, steps = 3, force_steps = TRUE) {
             } else if (force_steps == FALSE) {
                 if (all(test > target)) {
                   # if all points are higher than the targeted point,
-                  return(x + 1)  # then return the target.
+                  return(i + 1)  # then return the target.
                 } else {
                   # otherwise, return null
                   return(numeric(0))
