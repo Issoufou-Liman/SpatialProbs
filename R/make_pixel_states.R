@@ -20,6 +20,7 @@
 #' get_boxplot_range_1d (sample)
 #' @importFrom raster calc reclassify canProcessInMemory writeRaster addLayer brick rasterTmpFile modal extension
 #' @export
+
 make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
                               sample = FALSE, size = 1000, ties = 'NA', filename = '', inparallel = NULL,...){
   tmp_filename_1 <- rasterTmpFile(prefix = 'r_tmp_1_')
@@ -49,10 +50,9 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
   if(class(x) == 'RasterLayer'){ # Case of single layer
     rclmat <- disaggregate_reclmat(rclmat = rclmat)
     if(canProcessInMemory(x, 4*length(rclmat))){ # Single layer can be processed in memory
-      out <- rclmat
-      for(i in 1:length(rclmat)){
-        out[[i]] <- reclassify(x, rclmat[[i]])
-      }
+      out <- sapply(1:length(rclmat), function(i){
+        reclassify(x, rclmat[[i]])
+      })
       out_target <- brick(out)
       if (filename != '') {
         writeRaster(out_target, filename = filename, ...) # problems with native raster format
@@ -84,20 +84,16 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
       sapply(rclmat, '[[', i, simplify = FALSE)
     }, simplify = FALSE)
     rclmat <- sapply (rclmat, function (i) Filter(Negate(is.null), i), simplify = FALSE)
-
     if(canProcessInMemory(x, 4*elem_size*nlayers(x))){ # Multi layer can be processed in memory
       out <- rclmat
-      out <- vector('list', length = length(rclmat))
-      for(i in 1:length(rclmat)){ # something like 5 for boxplot stats and out
-        out_tmp <- vector('list', length = length(rclmat[[i]]))
-        for (j in 1:length(rclmat[[i]])) { # something like 138 for a 3 year modis 16 days ts
-          out_tmp[[j]] <- reclassify(x[[j]], rclmat[[i]][[j]])
-        }
-        out[[i]] <- out_tmp
-      }
+      out <- sapply(1:length(rclmat), function(i){ # something like 5 for boxplot stats and out
+        sapply(1:length(rclmat[[i]]), function(j){ # something like 138 for a 3 year modis 16 days ts
+          reclassify(x[[j]], rclmat[[i]][[j]])
+        }, simplify = FALSE)
+      }, simplify = FALSE)
       out <- sapply(out, function(i){
         calc(x=brick(i), fun = function (x) modal(x, ties = ties))
-      }, simplify = FALSE)
+      }, simplify = FALSE, USE.NAMES = TRUE)
       out <- brick(out)
       if (filename != '') {
         out <- writeRaster(out, filename = filename,  ...)
