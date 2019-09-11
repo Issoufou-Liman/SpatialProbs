@@ -28,7 +28,7 @@ be process in memory).}
 
 \item{inparallel}{numeric indicating the number of processes to run in parallel}
 
-\item{...}{Additional arguments passed to get_boxplot_range_1d.}
+\item{...}{Additional arguments as for writeRaster}
 }
 \value{
 A raster brick where each layers correspond to one of the states.

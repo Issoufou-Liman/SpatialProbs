@@ -8,6 +8,7 @@
 #' @inheritParams reclassifion_matrix
 #' @inheritParams raster::calc
 #' @inheritParams raster::modal
+#' @param ... Additional arguments as for writeRaster
 #' @param inparallel numeric indicating the number of processes to run in parallel
 #' @details
 #' The ranges are bounded by the lower outlier (if any), extreme of the lower whisker,
@@ -20,7 +21,6 @@
 #' get_boxplot_range_1d (sample)
 #' @importFrom raster calc reclassify canProcessInMemory writeRaster addLayer brick rasterTmpFile modal extension
 #' @export
-
 make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
                               sample = FALSE, size = 1000, ties = 'NA', filename = '', inparallel = NULL,...){
   tmp_filename_1 <- rasterTmpFile(prefix = 'r_tmp_1_')
