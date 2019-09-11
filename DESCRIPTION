@@ -15,7 +15,10 @@ Depends:
 Imports:
     raster,
     chillR,
-    plyr
+    plyr,
+    caret,
+    party,
+    reshape2
 Suggests:
     testthat,
     knitr,
