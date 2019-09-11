@@ -8,6 +8,7 @@
 #' @inheritParams reclassifion_matrix
 #' @inheritParams raster::calc
 #' @inheritParams raster::modal
+#' @param op character string indicating the type of returned value: either raw states or their probabilities
 #' @param ... Additional arguments as for writeRaster
 #' @param inparallel integer indicating the number of processes to run in parallel
 #' @details
@@ -22,7 +23,13 @@
 #' @importFrom raster calc reclassify canProcessInMemory writeRaster addLayer brick rasterTmpFile modal extension beginCluster clusterR endCluster
 #' @export
 make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
-                              sample = FALSE, size = 1000, ties = 'NA', filename = '', inparallel = NULL, ...){
+                              sample = FALSE, size = 1000, ties = 'NA', op = c("sampler", "proba"), filename = '', inparallel = NULL, ...){
+  op <- match.arg(op)
+  if(op == "sampler"){
+    fonction <- function (x) modal(x, ties = ties)
+  } else {
+    fonction <- function(x) length(x[x==1])/length(x)
+  }
 
   if (!is.null(inparallel)){
     if(inparallel%%1 != 0){
@@ -125,10 +132,10 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
       }, simplify = FALSE)
       out <- sapply(out, function(i){
         if(is.null(inparallel)){
-          calc(x=brick(i), fun = function (x) modal(x, ties = ties))
+          calc(x=brick(i), fun = fonction)
         } else {
           # calc(x=brick(i), fun = function (x) modal(x, ties = ties))
-          clusterR(brick(i), calc, args = list(fun = function (x) modal(x, ties = ties)))
+          clusterR(brick(i), calc, args = list(fun = fonction))
         }
       }, simplify = FALSE, USE.NAMES = TRUE)
       out <- brick(out)
@@ -165,17 +172,17 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
         names(out) <- names(rclmat[[i]])
         if (i==1){
           if(is.null(inparallel)){
-            out_target <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_3)
+            out_target <- calc(x=out, fun = fonction, filename = tmp_filename_3)
           } else {
             # out_target <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_3)
-            out_target <- clusterR(x=out, calc, args = list (fun = function (x) modal(x, ties = ties)), filename = tmp_filename_3)
+            out_target <- clusterR(x=out, calc, args = list (fun = fonction), filename = tmp_filename_3)
           }
         } else {
           if(is.null(inparallel)){
-            out_tmp <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_1, overwrite = TRUE)
+            out_tmp <- calc(x=out, fun = fonction, filename = tmp_filename_1, overwrite = TRUE)
           } else {
             # out_tmp <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_1, overwrite = TRUE)
-            out_tmp <- clusterR(x=out, calc, args = list (fun = function (x) modal(x, ties = ties)), filename = tmp_filename_1, overwrite = TRUE)
+            out_tmp <- clusterR(x=out, calc, args = list (fun = fonction), filename = tmp_filename_1, overwrite = TRUE)
           }
           out_target <- addLayer(out_target, out_tmp)
         }

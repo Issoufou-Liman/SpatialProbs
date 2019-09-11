@@ -5,8 +5,8 @@
 \title{Deriving qualitative pixel states from raster data}
 \usage{
 make_pixel_states(x, split_IQR = FALSE, custum_rclmat = NULL,
-  sample = FALSE, size = 1000, ties = "NA", filename = "",
-  inparallel = NULL, ...)
+  sample = FALSE, size = 1000, ties = "NA", op = c("sampler",
+  "proba"), filename = "", inparallel = NULL, ...)
 }
 \arguments{
 \item{x}{a raster object}
@@ -23,6 +23,8 @@ based on a ramdon sampling of the original data.}
 be process in memory).}
 
 \item{ties}{character. Indicates how to treat ties. Either 'random', 'lowest', 'highest', 'first', or 'NA'}
+
+\item{op}{character string indicating the type of returned value: either raw states or their probabilities}
 
 \item{filename}{character. Output filename (optional)}
 
