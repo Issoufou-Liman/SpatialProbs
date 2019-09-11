@@ -26,7 +26,7 @@ be process in memory).}
 
 \item{filename}{character. Output filename (optional)}
 
-\item{inparallel}{numeric indicating the number of processes to run in parallel}
+\item{inparallel}{integer indicating the number of processes to run in parallel}
 
 \item{...}{Additional arguments as for writeRaster}
 }

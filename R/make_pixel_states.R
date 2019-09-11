@@ -9,7 +9,7 @@
 #' @inheritParams raster::calc
 #' @inheritParams raster::modal
 #' @param ... Additional arguments as for writeRaster
-#' @param inparallel numeric indicating the number of processes to run in parallel
+#' @param inparallel integer indicating the number of processes to run in parallel
 #' @details
 #' The ranges are bounded by the lower outlier (if any), extreme of the lower whisker,
 #' the lower ‘hinge’, the median, the upper ‘hinge’, the extreme of the upper whisker,
@@ -19,10 +19,25 @@
 #' @examples
 #' sample <- rnorm(100)
 #' get_boxplot_range_1d (sample)
-#' @importFrom raster calc reclassify canProcessInMemory writeRaster addLayer brick rasterTmpFile modal extension
+#' @importFrom raster calc reclassify canProcessInMemory writeRaster addLayer brick rasterTmpFile modal extension beginCluster clusterR endCluster
 #' @export
 make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
-                              sample = FALSE, size = 1000, ties = 'NA', filename = '', inparallel = NULL,...){
+                              sample = FALSE, size = 1000, ties = 'NA', filename = '', inparallel = NULL, ...){
+
+  if (!is.null(inparallel)){
+    if(inparallel%%1 != 0){
+      stop("Argument inparallel must be NULL or integer indicating the number of processes to run in parallel")
+    } else if (inparallel > 1){
+      beginCluster(inparallel)
+    } else if (inparallel == 1){
+      inparallel <- NULL
+    }
+  }
+
+  if (!(class(x) %in% c("RasterLayer", 'RasterBrick', 'RasterStack'))){
+    stop(paste(deparse(substitute(x)), "must be a raster object"))
+  }
+
   tmp_filename_1 <- rasterTmpFile(prefix = 'r_tmp_1_')
   tmp_filename_2 <- rasterTmpFile(prefix = 'r_tmp_2_')
   tmp_filename_3 <- rasterTmpFile(prefix = 'r_tmp_3_')
@@ -51,7 +66,11 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
     rclmat <- disaggregate_reclmat(rclmat = rclmat)
     if(canProcessInMemory(x, 4*length(rclmat))){ # Single layer can be processed in memory
       out <- sapply(1:length(rclmat), function(i){
-        reclassify(x, rclmat[[i]])
+        if(is.null(inparallel)){
+          reclassify(x, rclmat[[i]])
+        } else {
+          clusterR(x, reclassify, args=list(rcl=rclmat[[i]], right=TRUE))
+        }
       })
       out_target <- brick(out)
       if (filename != '') {
@@ -62,9 +81,17 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
       for(i in 1:length(rclmat)){
         tmp_filename_2 <- rasterTmpFile(prefix = paste0(names(rclmat)[[i]], "_"))
         if(i == 1){
-          out_target <- reclassify(x, rclmat[[i]], filename = tmp_filename_1)
+          if(is.null(inparallel)){
+            out_target <- reclassify(x, rclmat[[i]], filename = tmp_filename_1)
+          } else {
+            out_target <- clusterR(x, reclassify, args = list(rcl = rclmat[[i]]), filename = tmp_filename_1)
+          }
         } else {
-          out_tmp <- reclassify(x, rclmat[[i]], filename = tmp_filename_2)
+          if(is.null(inparallel)){
+            out_tmp <- reclassify(x, rclmat[[i]], filename = tmp_filename_2)
+          } else {
+            out_tmp <- clusterR(x, reclassify, args = list(rcl = rclmat[[i]]), filename = tmp_filename_2)
+          }
           out_target <- addLayer(out_target, out_tmp)
         }
         out_target
@@ -88,11 +115,21 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
       out <- rclmat
       out <- sapply(1:length(rclmat), function(i){ # something like 5 for boxplot stats and out
         sapply(1:length(rclmat[[i]]), function(j){ # something like 138 for a 3 year modis 16 days ts
-          reclassify(x[[j]], rclmat[[i]][[j]])
+          if(is.null(inparallel)){
+            reclassify(x[[j]], rclmat[[i]][[j]])
+          } else {
+            # reclassify(x[[j]], rclmat[[i]][[j]])
+            clusterR(x[[j]], reclassify, args = list(rcl=rclmat[[i]][[j]]))
+          }
         }, simplify = FALSE)
       }, simplify = FALSE)
       out <- sapply(out, function(i){
-        calc(x=brick(i), fun = function (x) modal(x, ties = ties))
+        if(is.null(inparallel)){
+          calc(x=brick(i), fun = function (x) modal(x, ties = ties))
+        } else {
+          # calc(x=brick(i), fun = function (x) modal(x, ties = ties))
+          clusterR(brick(i), calc, args = list(fun = function (x) modal(x, ties = ties)))
+        }
       }, simplify = FALSE, USE.NAMES = TRUE)
       out <- brick(out)
       if (filename != '') {
@@ -108,18 +145,38 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
         }
         for (j in 1:length(rclmat[[i]])) { # something like 138 for a 3 year modis 16 days ts
           if(j==1){
-            out <- reclassify(x[[j]], rclmat[[i]][[j]], filename = tmp_filename_1, overwrite = TRUE)
+            if(is.null(inparallel)){
+              out <- reclassify(x[[j]], rclmat[[i]][[j]], filename = tmp_filename_1, overwrite = TRUE)
+            } else {
+              # out <- reclassify(x[[j]], rclmat[[i]][[j]], filename = tmp_filename_1, overwrite = TRUE)
+              out <- clusterR(x[[j]], reclassify, args = list (rcl = rclmat[[i]][[j]]), filename = tmp_filename_1, overwrite = TRUE)
+            }
           } else {
             tmp_filename_2 <- rasterTmpFile(prefix = 'tmp_file_')
-            out_tmp <- reclassify(x[[j]], rclmat[[i]][[j]], filename = tmp_filename_2, overwrite = TRUE)
+            if(is.null(inparallel)){
+              out_tmp <- reclassify(x[[j]], rclmat[[i]][[j]], filename = tmp_filename_2, overwrite = TRUE)
+            } else {
+              # out_tmp <- reclassify(x[[j]], rclmat[[i]][[j]], filename = tmp_filename_2, overwrite = TRUE)
+              out_tmp <- clusterR(x[[j]], reclassify, args = list(rcl = rclmat[[i]][[j]]), filename = tmp_filename_2, overwrite = TRUE)
+            }
             out <- addLayer(out, out_tmp)
           }
         }
         names(out) <- names(rclmat[[i]])
         if (i==1){
-          out_target <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_3)
+          if(is.null(inparallel)){
+            out_target <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_3)
+          } else {
+            # out_target <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_3)
+            out_target <- clusterR(x=out, calc, args = list (fun = function (x) modal(x, ties = ties)), filename = tmp_filename_3)
+          }
         } else {
-          out_tmp <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_1, overwrite = TRUE)
+          if(is.null(inparallel)){
+            out_tmp <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_1, overwrite = TRUE)
+          } else {
+            # out_tmp <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_1, overwrite = TRUE)
+            out_tmp <- clusterR(x=out, calc, args = list (fun = function (x) modal(x, ties = ties)), filename = tmp_filename_1, overwrite = TRUE)
+          }
           out_target <- addLayer(out_target, out_tmp)
         }
       }
@@ -127,6 +184,7 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
       if (filename != '') {
         out_target <- writeRaster(out_target, filename = filename,  ...)
       }
+      endCluster()
       return(out_target)
     }
   }
