@@ -4,22 +4,14 @@
 \alias{reclassifion_matrix}
 \title{Create reclassification matrix}
 \usage{
-reclassifion_matrix(x, split_IQR = FALSE, na.rm = TRUE, type = 5,
-  ..., custum_rclmat = NULL, sample = FALSE, size = 1000)
+reclassifion_matrix(x, split_IQR = FALSE, custum_rclmat = NULL,
+  sample = FALSE, size = 1000)
 }
 \arguments{
 \item{x}{numeric vector, data.frame, or raster object.}
 
 \item{split_IQR}{logical. Should the inter-quartile range be split at the median
 to form different ranges? The default is TRUE}
-
-\item{na.rm}{logical; if true, any \code{\link{NA}} and \code{NaN}'s
-    are removed from \code{x} before the quantiles are computed.}
-
-\item{type}{an integer between 1 and 9 selecting one of the
-    nine quantile algorithms detailed below to be used.}
-
-\item{...}{Additional arguments passed to get_boxplot_range_1d.}
 
 \item{custum_rclmat}{numeric vector indicating the limits based on which to reclassify x.}
 
@@ -28,6 +20,8 @@ based on a ramdon sampling of the original data.}
 
 \item{size}{Integer. Sample size (if sample is TRUE or if the data cannot
 be process in memory).}
+
+\item{...}{Additional arguments passed to get_boxplot_range_1d.}
 }
 \value{
 a matrix (if x is one dimensional) or list of matrix.
