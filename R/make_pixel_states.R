@@ -178,11 +178,12 @@ make_pixel_states <- function(x, split_IQR = FALSE, custum_rclmat=NULL,
             out_target <- clusterR(x=out, calc, args = list (fun = fonction), filename = tmp_filename_3)
           }
         } else {
+          tmp_filename_4 <- rasterTmpFile(prefix = 'tmp_file_')
           if(is.null(inparallel)){
-            out_tmp <- calc(x=out, fun = fonction, filename = tmp_filename_1, overwrite = TRUE)
+            out_tmp <- calc(x=out, fun = fonction, filename = tmp_filename_4, overwrite = TRUE)
           } else {
             # out_tmp <- calc(x=out, fun = function (x) modal(x, ties = ties), filename = tmp_filename_1, overwrite = TRUE)
-            out_tmp <- clusterR(x=out, calc, args = list (fun = fonction), filename = tmp_filename_1, overwrite = TRUE)
+            out_tmp <- clusterR(x=out, calc, args = list (fun = fonction), filename = tmp_filename_4, overwrite = TRUE)
           }
           out_target <- addLayer(out_target, out_tmp)
         }
