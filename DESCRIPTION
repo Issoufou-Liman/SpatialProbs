@@ -13,6 +13,8 @@ Authors@R: c(
 Depends:
     R (>= 3.4.0),
 Imports:
+    methods,
+    sp,
     raster,
     chillR,
     plyr,
