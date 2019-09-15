@@ -25,7 +25,7 @@
 #' @importFrom sp spsample
 #' @export
 raster_pca <- function (x, nSamples = NULL, n = ceiling(ncell(x)*0.2), nComp = nlayers(x), spca = FALSE,
-                        maskCheck = TRUE, na.action=na.exclude, scale. = TRUE, sampling_type="regular", ...)
+                        maskCheck = TRUE,na.action=na.exclude, scale. = TRUE, sampling_type="regular", ...)
 {
   set.seed(25)
   x <- scale(x, center = T, scale = T)
@@ -93,6 +93,6 @@ raster_pca <- function (x, nSamples = NULL, n = ceiling(ncell(x)*0.2), nComp = n
                         wrArgs = ellip)
   rownames(model$rotation) <- as.character(as.Date(substring(rownames(model$rotation), 2), "%Y.%m.%d"))
   structure(list(call = match.call(), model = model, map = out),
-            class = "test_rasterPCA")
+            class = "raster_pca")
   # model
 }
