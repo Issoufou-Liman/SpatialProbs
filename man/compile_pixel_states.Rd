@@ -6,7 +6,8 @@
 \usage{
 compile_pixel_states(x, w = matrix(1, 3, 3), split_IQR = FALSE,
   custum_rclmat = NULL, sample = FALSE, size = 1000, ties = "NA",
-  op = c("sampler", "proba"), inparallel = NULL, ...)
+  op = c("sampler", "proba"), as_states = FALSE, inparallel = NULL,
+  ...)
 }
 \arguments{
 \item{x}{a raster stack or brick}
@@ -27,6 +28,9 @@ be process in memory).}
 \item{ties}{character. Indicates how to treat ties. Either 'random', 'lowest', 'highest', 'first', or 'NA'}
 
 \item{op}{character string indicating the type of returned value: either raw states or their probabilities}
+
+\item{as_states}{Logical, are the states already made (e.g. x is an output of make_pixel_states function call)?
+If TRUE, the x is assumed to be a stack of ready made states and is directly processed.}
 
 \item{inparallel}{integer indicating the number of processes to run in parallel}
 

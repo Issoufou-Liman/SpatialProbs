@@ -7,6 +7,8 @@
 #' @param x a raster stack or brick
 #' @inheritParams make_pixel_states
 #' @inheritParams raster::focal
+#' @param as_states Logical, are the states already made (e.g. x is an output of make_pixel_states function call)?
+#' If TRUE, the x is assumed to be a stack of ready made states and is directly processed.
 #' @details
 #' The ranges are bounded by the lower outlier (if any), extreme of the lower whisker,
 #' the lower ‘hinge’, the median, the upper ‘hinge’, the extreme of the upper whisker,
@@ -21,10 +23,11 @@
 #' @export
 compile_pixel_states <- function(x, w = matrix(1, 3, 3),
                                  split_IQR = FALSE, custum_rclmat=NULL,
-                                 sample = FALSE, size = 1000, ties = 'NA', op = c("sampler", "proba"), inparallel = NULL, ...){
-
-  x <- make_pixel_states (x, split_IQR = split_IQR, custum_rclmat=custum_rclmat,
-                          sample = sample, size = size, ties = 'NA', op='proba', inparallel = inparallel)
+                                 sample = FALSE, size = 1000, ties = 'NA', op = c("sampler", "proba"), as_states=FALSE, inparallel = NULL, ...){
+  if (!as_states){
+    x <- make_pixel_states (x, split_IQR = split_IQR, custum_rclmat=custum_rclmat,
+                            sample = sample, size = size, ties = 'NA', op='proba', inparallel = inparallel)
+  }
 
   # fun: a function to be used by calc to decide the node states depending on unique
   # highest probability
